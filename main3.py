@@ -5,16 +5,11 @@ import pygame as pg
 from pygame import time
 
 
-# import pyganim
-# import arcade
-
-
 def load_image(name):
     filename = os.path.join('data', name)
     try:
         image = pg.image.load(filename)
     except pg.error as error:
-        print('Не могу загрузить изображение:', name)
         raise SystemExit(error)
     return image
 
@@ -51,6 +46,17 @@ def generate_level(level):
     return data_lst
 
 
+# разрезание листа с картинками на отдельные кадры
+def animasprite(sheet, cols, rows, x, y):
+    frames = []
+    rect = pg.Rect(0, 0, sheet.get_width() // cols, sheet.get_height() // rows)
+    for j in range(rows):
+        for i in range(cols):
+            frame_location = (rect.w * i, rect.h * j)
+            frames.append(sheet.subsurface(pg.Rect(frame_location, rect.size)))
+    return frames
+
+
 class Tile(pg.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__()
@@ -79,7 +85,6 @@ class Camera:
         # лимит
         x = min(0, x)  # лево
         y = min(0, y)  # верх
-        # x = max((self.width - run.width), x)  # право
         self.camera = pg.Rect(x, y, self.width, self.height)
 
 
@@ -88,20 +93,27 @@ class Player(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self)
         self.game = game
         # спрайт игрока
-        self.image = load_image('stand.png')
-        self.rect = pg.rect.Rect((0, 0), (80, 165))
+        self.stand = load_image('stand.png')
+        self.image = self.stand
+        self.rect = pg.rect.Rect((0, 0), (60, 100))
+        self.pos = vec(200, 700)
         # трение
         self.friction = -0.12
-        self.pos = vec(0, 0)
         # скорость передвижения игрока
         self.vel = vec(0, 0)
         # ускорение
         self.acc = vec(0, 0)
-        # переменные для анимации
+        # переменные для анимации, списки с кадрами
         self.walking = False
-        self.jumping = False
+        self.walk_r_lst = animasprite(load_image('walk.png'), 4, 1, 0, 0)
+        self.walk_l_lst = list()
+        for frame in self.walk_r_lst:
+            self.walk_l_lst.append(pg.transform.flip(frame, True, False))
+        # счетчик кадров
         self.current_frame = 0
         self.last_update = 0
+        # в какую сторону смотрит игрок
+        self.look = 0
 
     def jump(self):
         # стоит ли игрок на поверхности
@@ -112,22 +124,52 @@ class Player(pg.sprite.Sprite):
             self.vel.y = -20
 
     def update(self):
+        self.animate()
         self.acc = vec(0, 0.7)
         # считывание нажатий кнопок передвижения
         key = pg.key.get_pressed()
         if key[pg.K_LEFT] or key[pg.K_a]:
-            self.acc.x = -0.6
+            self.acc.x = -0.65
+            self.look = 1
         if key[pg.K_RIGHT] or key[pg.K_d]:
-            self.acc.x = 0.6
-        # обновление координат игрока
-        # применение трения
+            self.acc.x = 0.65
+            self.look = 0
+        # ничего не получается :(
+        # обновление координат игрока, применение трения
         self.acc.x += self.vel.x * self.friction
         # выравнивание скорости + инерция
         self.vel += self.acc
+        if abs(self.vel.x) < 0.1:
+            self.vel.x = 0
         self.pos += self.vel + 0.5 * self.acc
-
         self.rect.midbottom = self.pos
 
+    def animate(self):
+        current = pg.time.get_ticks()
+        if self.vel.x != 0:
+            self.walking = True
+        else:
+            self.walking = False
+        # анимация ходьбы
+        if self.walking:
+            bottom = self.rect.bottom
+            if current - self.last_update > 190:
+                self.last_update = current
+                self.current_frame = (self.current_frame + 1) % len(self.walk_r_lst)
+                if self.vel.x > 0:
+                    self.image = self.walk_r_lst[self.current_frame]
+                else:
+                    self.image = self.walk_l_lst[self.current_frame]
+                self.rect = self.image.get_rect()
+                self.rect.bottom = bottom
+        if not self.walking:
+            bottom = self.rect.bottom
+            if self.look == 0:
+                self.image = self.stand
+            else:
+                self.image = pg.transform.flip(self.stand, True, False)
+            self.rect = self.image.get_rect()
+            self.rect.bottom = bottom
 
 def terminate():
     # Определяем отдельную функцию выхода из игры
@@ -140,7 +182,7 @@ vec = pg.math.Vector2
 
 
 def start_screen():
-    # Выводим изображение заставки:
+    # заставка
     start_screen_background = load_image('start-screen.jpg')
     run.screen.blit(start_screen_background, (0, 0))
     while True:
@@ -156,7 +198,7 @@ class Game:
     def __init__(self):
         self.running = True
         pg.init()
-        pg.display.set_caption('test')
+        pg.display.set_caption('Roota`s adventure')
         size = self.width, self.height = 1200, 800
         self.clock = pg.time.Clock()
         self.screen = pg.display.set_mode(size)
@@ -172,11 +214,12 @@ class Game:
             'dirt_edge': load_image('dark_dirt_edge_right.png'),
             'dirt_edge2': load_image('dark_dirt_edge_left.png'),
         }
-        # Задаём размер тайлов:
+        # размер тайлов:
         self.tile_width = self.tile_height = 70
-        # Группа:
+        # Группы:
         self.tiles_group = pg.sprite.Group()
         self.all_sprites = pg.sprite.Group()
+        self.mobs = pg.sprite.Group()
         # генерация уровня
         self.levelmap = load_level('level-01.map')
         data_lst = generate_level(self.levelmap)
@@ -207,9 +250,9 @@ class Game:
         # проверка коллюжена
         hits = pg.sprite.spritecollide(self.player, self.tiles_group, False)
         if hits:
-            self.player.pos.y = hits[0].rect.y
-            self.player.vel.y = 0
-            # ничего не получается :((
+            if self.player.vel.y >= 0:
+                self.player.pos.y = hits[0].rect.y
+                self.player.vel.y = 0
 
     def events(self):
         # цикл с событиями
@@ -222,6 +265,7 @@ class Game:
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_SPACE:
                     self.player.jump()
+                    pass
 
     def draw(self):
         # прорисовка
@@ -229,8 +273,6 @@ class Game:
         for sprite in self.all_sprites:
             self.screen.blit(sprite.image, self.camera.apply(sprite))
         pg.display.flip()
-
-
 
     def show_go_screen(self):
         pass

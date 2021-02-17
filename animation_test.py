@@ -42,10 +42,10 @@ if __name__ == '__main__':
     size = width, height = 200, 200
     screen = pg.display.set_mode(size)
     all_sprites = pg.sprite.Group()
-    sheet_dragon = load_image('walk.png')
-    cols, rows = (4, 1)
+    sheet_dragon = load_image('enemy_move.png')
+    cols, rows = (2, 1)
     x, y = (0, 0)
-    sprite_ = AnimaSprite(sheet_dragon, 4, 1, 0, 0)
+    sprite_ = AnimaSprite(sheet_dragon, 2, 1, 0, 0)
     fps = 5
     running = True
     while running:
