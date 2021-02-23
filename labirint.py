@@ -20,14 +20,14 @@ class Player(pg.sprite.Sprite):
         super().__init__(player_group)
         self.image = player_image
         self.pos = (pos_x, pos_y)
-        self.rect = self.image.get_rect().move(tile_width * pos_x + 15,
-                                               tile_height * pos_y + 5)
+        self.rect = self.image.get_rect().move(tile_width * pos_x + 5,
+                                               100 + tile_height * pos_y)
 
     def move(self, x, y):
 
         self.pos = (x, y)
-        self.rect = self.image.get_rect().move(tile_width * self.pos[0] + 15,
-                                               tile_height * self.pos[1] + 5)
+        self.rect = self.image.get_rect().move(tile_width * self.pos[0] + 5,
+                                               100 + tile_height * self.pos[1])
 
 
 class Tile(pg.sprite.Sprite):
@@ -35,7 +35,7 @@ class Tile(pg.sprite.Sprite):
         super().__init__(tiles_group)
         self.image = tile_images[tile_type]
         self.rect = self.image.get_rect().move(tile_width * pos_x,
-                                               tile_height * pos_y)
+                                               100 + tile_height * pos_y)
 
 
 def load_level(filename):
@@ -52,6 +52,8 @@ def generate_level(level):
         for x in range(col):
             if level[y, x] == '#':
                 Tile('wall', x, y)
+            elif level[y, x] == '%':
+                Tile('coin', x, y)
             elif level[y, x] == '@':
                 level[y, x] = '.'
                 player = Player(x, y)
@@ -88,9 +90,11 @@ if __name__ == '__main__':
     player_image = load_image('stand.png')
 
     tile_images = {
-        'wall': load_image('box.png')
+        'wall': load_image('box1.png'),
+        'coin': load_image('coin1.png')
     }
-    tile_width = tile_height = 24
+    tile_width = 26
+    tile_height = 28
 
     player_group = pg.sprite.Group()
     tiles_group = pg.sprite.Group()
@@ -117,8 +121,12 @@ if __name__ == '__main__':
                 elif event.key == pg.K_RIGHT:
                     move_player(player, 'right')
         screen.fill(pg.Color('black'))
+        sun_surf = load_image('fon.png')
+        sun_rect = sun_surf.get_rect()
+        screen.blit(sun_surf, sun_rect)
         tiles_group.draw(screen)
         player_group.draw(screen)
         pg.display.flip()
         time.Clock().tick(fps)
     terminate()
+
