@@ -25,6 +25,8 @@ class Player(pg.sprite.Sprite):
                                                100 + tile_height * pos_y)
         self.coins = None
         self.sum_coins = 0
+        self.enemies = None
+        self.alive = True
 
     def move(self, x, y):
         self.pos = (x, y)
@@ -36,6 +38,9 @@ class Player(pg.sprite.Sprite):
         for coin in coins_hit_list:
             self.sum_coins += 1
             coin.kill()
+
+        if pg.sprite.spritecollideany(self, self.enemies, False):
+            self.alive = False
 
 
 used_coins = [1, 2, 3, 4, 5, 6, 7]
@@ -135,6 +140,13 @@ if __name__ == '__main__':
 
     player.coins = coins_group
 
+    enemy_group = pg.sprite.Group()
+    player.enemies = enemy_group
+    enemies_coord = []
+    for coord in enemies_coord:
+        enemy = Enemy(coord[0], coord[1])
+        enemy_group.add(enemy)
+
     pg.key.set_repeat(200, 70)
 
     fps = 60
@@ -153,13 +165,19 @@ if __name__ == '__main__':
                 elif event.key == pg.K_RIGHT:
                     move_player(player, 'right')
         screen.fill(pg.Color('black'))
-        sun_surf = load_image('fon.png')
-        sun_rect = sun_surf.get_rect()
-        screen.blit(sun_surf, sun_rect)
-        tiles_group.draw(screen)
-        player_group.draw(screen)
-        coins_group.draw(screen)
-        player.update()
+
+        if not player.alive:
+            pass_surf = load_image('pass.png')
+            pass_rect = pass_surf.get_rect()
+            screen.blit(pass_surf, pass_rect)
+        else:
+            fon_surf = load_image('fon.png')
+            fon_rect = fon_surf.get_rect()
+            screen.blit(fon_surf, fon_rect)
+            tiles_group.draw(screen)
+            player_group.draw(screen)
+            coins_group.draw(screen)
+            player.update()
         pg.display.flip()
         time.Clock().tick(fps)
     terminate()
