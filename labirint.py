@@ -43,14 +43,13 @@ used_coins = [1, 2, 3, 4, 5, 6, 7]
 
 class Coin(pg.sprite.Sprite):
     def __init__(self, x, y):
-        super().__init__()
+        super().__init__(coins_group)
         k = random.choice(used_coins)
+        print(k)
         self.image = load_image(f'coin{k}.png')
         del used_coins[used_coins.index(k)]
-        self.rect = self.image.get_rect()
-        self.rect.x = tile_width * x        
-        self.rect.y = 100 + tile_height * y
-        print(x, y)
+        self.rect = self.image.get_rect().move(tile_width * y,
+                                               100 + tile_height * x)
 
 
 class Tile(pg.sprite.Sprite):
@@ -67,9 +66,10 @@ def load_level(filename):
         levelmap = np.array([list(i) for i in [line.strip() for line in mapfile]])
         while len(coins_coord) < 7:
             k1 = random.randint(0, 24)
-            k2 = random.randint(0, 44)
-            if levelmap[k1][k2] == '.':
+            k2 = random.randint(0, 45)
+            if levelmap[k1, k2] == '.' and [k1, k2] not in coins_coord:
                 coins_coord.append([k1, k2])
+                print(k1, k2, levelmap[k1, k2])
     return levelmap
 
 
