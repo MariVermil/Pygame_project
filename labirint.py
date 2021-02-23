@@ -159,6 +159,7 @@ if __name__ == '__main__':
         tiles_group.draw(screen)
         player_group.draw(screen)
         coins_group.draw(screen)
+        player.update()
         pg.display.flip()
         time.Clock().tick(fps)
     terminate()
