@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import pygame as pg
 from pygame import time
+import random
 
 
 def load_image(name):  # Проверка фото на наличие
@@ -22,12 +23,34 @@ class Player(pg.sprite.Sprite):
         self.pos = (pos_x, pos_y)
         self.rect = self.image.get_rect().move(tile_width * pos_x + 5,
                                                100 + tile_height * pos_y)
+        self.coins = None
+        self.sum_coins = 0
 
     def move(self, x, y):
-
         self.pos = (x, y)
         self.rect = self.image.get_rect().move(tile_width * self.pos[0] + 5,
                                                100 + tile_height * self.pos[1])
+
+    def update(self):
+        coins_hit_list = pg.sprite.spritecollide(self, self.coins, False)
+        for coin in coins_hit_list:
+            self.sum_coins += 1
+            coin.kill()
+
+
+used_coins = [1, 2, 3, 4, 5, 6, 7]
+
+
+class Coin(pg.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        k = random.choice(used_coins)
+        self.image = load_image(f'coin{k}.png')
+        del used_coins[used_coins.index(k)]
+        self.rect = self.image.get_rect()
+        self.rect.x = tile_width * x        
+        self.rect.y = 100 + tile_height * y
+        print(x, y)
 
 
 class Tile(pg.sprite.Sprite):
@@ -42,6 +65,11 @@ def load_level(filename):
     filename = os.path.join('data', filename)
     with open(filename, 'r') as mapfile:
         levelmap = np.array([list(i) for i in [line.strip() for line in mapfile]])
+        while len(coins_coord) < 7:
+            k1 = random.randint(0, 24)
+            k2 = random.randint(0, 44)
+            if levelmap[k1][k2] == '.':
+                coins_coord.append([k1, k2])
     return levelmap
 
 
@@ -52,8 +80,6 @@ def generate_level(level):
         for x in range(col):
             if level[y, x] == '#':
                 Tile('wall', x, y)
-            elif level[y, x] == '%':
-                Tile('coin', x, y)
             elif level[y, x] == '@':
                 level[y, x] = '.'
                 player = Player(x, y)
@@ -90,8 +116,7 @@ if __name__ == '__main__':
     player_image = load_image('stand.png')
 
     tile_images = {
-        'wall': load_image('box1.png'),
-        'coin': load_image('coin1.png')
+        'wall': load_image('box1.png')
     }
     tile_width = 26
     tile_height = 28
@@ -99,9 +124,16 @@ if __name__ == '__main__':
     player_group = pg.sprite.Group()
     tiles_group = pg.sprite.Group()
 
+    coins_coord = []
     levelmap = load_level('level-01.map')
-
     player, level_x, level_y = generate_level(levelmap)
+
+    coins_group = pg.sprite.Group()
+    for coord in coins_coord:
+        coin = Coin(coord[0], coord[1])
+        coins_group.add(coin)
+
+    player.coins = coins_group
 
     pg.key.set_repeat(200, 70)
 
@@ -126,6 +158,7 @@ if __name__ == '__main__':
         screen.blit(sun_surf, sun_rect)
         tiles_group.draw(screen)
         player_group.draw(screen)
+        coins_group.draw(screen)
         pg.display.flip()
         time.Clock().tick(fps)
     terminate()
