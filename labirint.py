@@ -43,9 +43,6 @@ class Player(pg.sprite.Sprite):
             self.alive = False
 
 
-used_coins = [1, 2, 3, 4, 5, 6, 7]
-
-
 class Coin(pg.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(coins_group)
@@ -100,7 +97,7 @@ def load_level(filename):
     filename = os.path.join('data', filename)
     with open(filename, 'r') as mapfile:
         levelmap = np.array([list(i) for i in [line.strip() for line in mapfile]])
-        while len(coins_coord) < 7:
+        while len(coins_coord) < 10:
             k1 = random.randint(0, 24)
             k2 = random.randint(0, 45)
             if levelmap[k1, k2] == '.' and [k1, k2] not in coins_coord:
@@ -159,6 +156,7 @@ if __name__ == '__main__':
     player_group = pg.sprite.Group()
     tiles_group = pg.sprite.Group()
 
+    used_coins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     coins_coord = []
     levelmap = load_level('level-01.map')
     player, level_x, level_y = generate_level(levelmap)
@@ -179,7 +177,8 @@ if __name__ == '__main__':
 
     pg.key.set_repeat(200, 70)
 
-    fps = 30
+    fps = 60
+
     running = True
     while running:
         for event in pg.event.get():
@@ -205,7 +204,32 @@ if __name__ == '__main__':
                     terminate()
                 elif event.type == pg.KEYDOWN or \
                         event.type == pg.MOUSEBUTTONDOWN:
-                    pass
+                    player.alive = True
+                    player_group = pg.sprite.Group()
+                    tiles_group = pg.sprite.Group()
+
+                    used_coins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                    coins_coord = []
+                    levelmap = load_level('level-01.map')
+                    player, level_x, level_y = generate_level(levelmap)
+
+                    coins_group = pg.sprite.Group()
+                    for coord in coins_coord:
+                        coin = Coin(coord[0], coord[1])
+                        coins_group.add(coin)
+
+                    player.coins = coins_group
+
+                    enemy_group = pg.sprite.Group()
+                    player.enemies = enemy_group
+                    enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44]]
+                    for coord in enemies_coord:
+                        enemy = Enemy(coord[0], coord[1], coord[2], coord[3])
+                        enemy_group.add(enemy)
+
+                    pg.key.set_repeat(200, 70)
+
+                    fps = 60
         else:
             fon_surf = load_image('fon.png')
             fon_rect = fon_surf.get_rect()
