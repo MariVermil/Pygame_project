@@ -6,6 +6,13 @@ from pygame import time
 import random
 
 
+# функция для прорисовки текста
+def draw_text(text, x, y):
+    font = pg.font.SysFont('Franklin Gothic Heavy', 28)
+    img = font.render(text, True, (255, 79, 0))
+    screen.blit(img, (x, y))
+
+
 def load_image(name):  # Проверка фото на наличие
     filename = os.path.join('data', name)
     try:
@@ -67,7 +74,7 @@ class Enemy(pg.sprite.Sprite):
         self.direction = 1
 
     def update(self):
-        if self.end_y > 0:
+        if self.end_y > self.start_y:
             if self.rect.y >= self.end_y:
                 self.rect.y = self.end_y
                 self.direction = -1
@@ -170,7 +177,8 @@ if __name__ == '__main__':
 
     enemy_group = pg.sprite.Group()
     player.enemies = enemy_group
-    enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44]]
+    enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44], [3, 18, 21, 18], [3, 28, 21, 28], [8, 5, 8, 14],
+                     [17, 5, 17, 14], [8, 32, 8, 40], [17, 32, 17, 40]]
     for coord in enemies_coord:
         enemy = Enemy(coord[0], coord[1], coord[2], coord[3])
         enemy_group.add(enemy)
@@ -222,7 +230,8 @@ if __name__ == '__main__':
 
                     enemy_group = pg.sprite.Group()
                     player.enemies = enemy_group
-                    enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44]]
+                    enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44], [3, 18, 21, 18], [3, 28, 21, 28], [8, 5, 8, 14],
+                                     [17, 5, 17, 14], [8, 32, 8, 40], [17, 32, 17, 40]]
                     for coord in enemies_coord:
                         enemy = Enemy(coord[0], coord[1], coord[2], coord[3])
                         enemy_group.add(enemy)
@@ -240,6 +249,7 @@ if __name__ == '__main__':
             enemy_group.draw(screen)
             enemy_group.update()
             player.update()
+            draw_text(f'Собрано предметов:  {str(player.sum_coins)} / 10', 12, 25)
         pg.display.flip()
         time.Clock().tick(fps)
     terminate()
