@@ -2,7 +2,6 @@ import os
 import sys
 import numpy as np
 import pygame as pg
-from pygame import time
 import random
 
 
@@ -23,6 +22,9 @@ def load_image(name):  # Проверка фото на наличие
     return image
 
 
+x_end, y_end = 0, 0
+
+
 class Player(pg.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group)
@@ -39,6 +41,8 @@ class Player(pg.sprite.Sprite):
         self.pos = (x, y)
         self.rect = self.image.get_rect().move(tile_width * self.pos[0] + 5,
                                                100 + tile_height * self.pos[1])
+        global x_end, y_end
+        x_end, y_end = x, y
 
     def update(self):
         coins_hit_list = pg.sprite.spritecollide(self, self.coins, False)
@@ -142,11 +146,11 @@ def move_player(player, movement):  # Движение персонажа
 
 
 def count_time():
-    if sec // 180 < 1:
+    if sec // 180 < 2:
         pass_surf = load_image('gold.png')
         pass_rect = pass_surf.get_rect(bottomright=(1190, 90))
         screen.blit(pass_surf, pass_rect)
-    elif sec // 180 < 2:
+    elif sec // 180 < 4:
         pass_surf = load_image('silver.png')
         pass_rect = pass_surf.get_rect(bottomright=(1190, 90))
         screen.blit(pass_surf, pass_rect)
@@ -256,6 +260,25 @@ if __name__ == '__main__':
 
                     fps = 60
                     sec = 0
+        elif x_end == 21 and y_end == 0:
+            if sec // 180 < 2:
+                pass_surf = load_image('end1.png')
+                pass_rect = pass_surf.get_rect()
+                screen.blit(pass_surf, pass_rect)
+            elif sec // 180 < 4:
+                pass_surf = load_image('end2.png')
+                pass_rect = pass_surf.get_rect()
+                screen.blit(pass_surf, pass_rect)
+            else:
+                pass_surf = load_image('end3.png')
+                pass_rect = pass_surf.get_rect()
+                screen.blit(pass_surf, pass_rect)
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    terminate()
+                elif event.type == pg.KEYDOWN or \
+                        event.type == pg.MOUSEBUTTONDOWN:
+                    terminate()
         else:
             fon_surf = load_image('fon.png')
             fon_rect = fon_surf.get_rect()
@@ -271,6 +294,6 @@ if __name__ == '__main__':
             count_time()
         pg.display.flip()
         sec += 1
-        time.Clock().tick(fps)
+        pg.time.Clock().tick(fps)
     terminate()
 
