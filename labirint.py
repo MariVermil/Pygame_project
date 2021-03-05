@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import pygame as pg
 import random
+from pygame import mixer
 
 
 # функция для прорисовки текста
@@ -171,6 +172,9 @@ if __name__ == '__main__':
     size = width, height = 1200, 800
     screen = pg.display.set_mode(size)
 
+    pg.mixer.pre_init(44100, -16, 2, 512)
+    mixer.init()
+
     player_image = load_image('stand.png')
 
     tile_images = {
@@ -181,6 +185,10 @@ if __name__ == '__main__':
 
     player_group = pg.sprite.Group()
     tiles_group = pg.sprite.Group()
+
+    pg.mixer.music.load('data/music1.mp3')
+    pg.mixer.music.set_volume(0.4)
+    pg.mixer.music.play(-1, 0.0, 5000)
 
     used_coins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     coins_coord = []
