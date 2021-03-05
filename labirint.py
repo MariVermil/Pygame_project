@@ -141,6 +141,21 @@ def move_player(player, movement):  # Движение персонажа
             player.move(x + 1, y)
 
 
+def count_time():
+    if sec // 180 < 1:
+        pass_surf = load_image('gold.png')
+        pass_rect = pass_surf.get_rect(bottomright=(1190, 90))
+        screen.blit(pass_surf, pass_rect)
+    elif sec // 180 < 2:
+        pass_surf = load_image('silver.png')
+        pass_rect = pass_surf.get_rect(bottomright=(1190, 90))
+        screen.blit(pass_surf, pass_rect)
+    else:
+        pass_surf = load_image('bronze.png')
+        pass_rect = pass_surf.get_rect(bottomright=(1190, 90))
+        screen.blit(pass_surf, pass_rect)
+
+
 def terminate():
     pg.quit()
     sys.exit()
@@ -186,6 +201,7 @@ if __name__ == '__main__':
     pg.key.set_repeat(200, 70)
 
     fps = 60
+    sec = 0
 
     running = True
     while running:
@@ -239,6 +255,7 @@ if __name__ == '__main__':
                     pg.key.set_repeat(200, 70)
 
                     fps = 60
+                    sec = 0
         else:
             fon_surf = load_image('fon.png')
             fon_rect = fon_surf.get_rect()
@@ -249,8 +266,11 @@ if __name__ == '__main__':
             enemy_group.draw(screen)
             enemy_group.update()
             player.update()
+            draw_text(f'Прошло времени  {str(sec // 180)} : {str((sec // 3) % 60)}', 775, 25)
             draw_text(f'Собрано предметов:  {str(player.sum_coins)} / 10', 12, 25)
+            count_time()
         pg.display.flip()
+        sec += 1
         time.Clock().tick(fps)
     terminate()
 
