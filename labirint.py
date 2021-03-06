@@ -8,7 +8,7 @@ from pygame import mixer
 
 # функция для прорисовки текста
 def draw_text(text, x, y):
-    font = pg.font.SysFont('Franklin Gothic Heavy', 28)
+    font = pg.font.SysFont('Franklin Gothic Heavy', 35)
     img = font.render(text, True, (255, 79, 0))
     screen.blit(img, (x, y))
 
@@ -147,11 +147,11 @@ def move_player(player, movement):  # Движение персонажа
 
 
 def count_time():
-    if sec // 180 < 2:
+    if sec // 300 < 2:
         pass_surf = load_image('gold.png')
         pass_rect = pass_surf.get_rect(bottomright=(1190, 90))
         screen.blit(pass_surf, pass_rect)
-    elif sec // 180 < 4:
+    elif sec // 300 < 4:
         pass_surf = load_image('silver.png')
         pass_rect = pass_surf.get_rect(bottomright=(1190, 90))
         screen.blit(pass_surf, pass_rect)
@@ -186,7 +186,7 @@ if __name__ == '__main__':
     player_group = pg.sprite.Group()
     tiles_group = pg.sprite.Group()
 
-    pg.mixer.music.load('data/music1.mp3')
+    pg.mixer.music.load('data/music1.wav')
     pg.mixer.music.set_volume(0.4)
     pg.mixer.music.play(-1, 0.0, 5000)
 
@@ -297,11 +297,10 @@ if __name__ == '__main__':
             enemy_group.draw(screen)
             enemy_group.update()
             player.update()
-            draw_text(f'Прошло времени  {str(sec // 180)} : {str((sec // 3) % 60)}', 775, 25)
+            draw_text(f'Прошло времени  {str(sec // 300)} : {str((sec // 5) % 60)}', 775, 25)
             draw_text(f'Собрано предметов:  {str(player.sum_coins)} / 10', 12, 25)
             count_time()
         pg.display.flip()
         sec += 1
         pg.time.Clock().tick(fps)
     terminate()
-
