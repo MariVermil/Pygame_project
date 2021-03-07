@@ -51,6 +51,7 @@ class Player(pg.sprite.Sprite):
             self.sum_coins += 1
             coin.kill()
 
+
         if pg.sprite.spritecollideany(self, self.enemies):
             self.alive = False
 
@@ -269,11 +270,11 @@ if __name__ == '__main__':
                     fps = 60
                     sec = 0
         elif x_end == 21 and y_end == 0:
-            if sec // 180 < 2:
+            if sec // 300 < 2:
                 pass_surf = load_image('end1.png')
                 pass_rect = pass_surf.get_rect()
                 screen.blit(pass_surf, pass_rect)
-            elif sec // 180 < 4:
+            elif sec // 300 < 4:
                 pass_surf = load_image('end2.png')
                 pass_rect = pass_surf.get_rect()
                 screen.blit(pass_surf, pass_rect)
