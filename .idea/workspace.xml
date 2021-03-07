@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="d8696167-3df4-4ea0-8630-8d57ca5940da" name="Default Changelist" comment="Конечные изменения лабиринта и файлы для пазлов">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/labirint.py" beforeDir="false" afterPath="$PROJECT_DIR$/labirint.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/puzzle.py" beforeDir="false" afterPath="$PROJECT_DIR$/puzzle.py" afterDir="false" />
-    </list>
+    <list default="true" id="d8696167-3df4-4ea0-8630-8d57ca5940da" name="Default Changelist" comment="Конечные изменения лабиринта и файлы для пазлов" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -134,7 +130,14 @@
       <option name="project" value="LOCAL" />
       <updated>1615145148197</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Готовые игры">
+      <created>1615151218694</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1615151218694</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -153,6 +156,7 @@
     <MESSAGE value="Конечные изменения лабиринта и файлы для пазлов" />
     <MESSAGE value="Основа пазлов" />
     <MESSAGE value="Вывод, поворот и структура" />
-    <option name="LAST_COMMIT_MESSAGE" value="Вывод, поворот и структура" />
+    <MESSAGE value="Готовые игры" />
+    <option name="LAST_COMMIT_MESSAGE" value="Готовые игры" />
   </component>
 </project>

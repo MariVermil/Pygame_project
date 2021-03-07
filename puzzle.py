@@ -95,9 +95,9 @@ if __name__ == '__main__':
     screen = pg.display.set_mode(size)
     board = Board(3, 5)
 
+    # включаем музыку
     pg.mixer.pre_init(44100, -16, 2, 512)
     mixer.init()
-
     pg.mixer.music.load('data/sea.wav')
     pg.mixer.music.set_volume(0.4)
     pg.mixer.music.play(-1, 0.0, 5000)
