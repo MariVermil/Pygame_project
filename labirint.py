@@ -4,6 +4,7 @@ import numpy as np
 import pygame as pg
 import random
 from pygame import mixer
+from datetime import datetime
 
 
 # функция для прорисовки текста
@@ -147,12 +148,12 @@ def move_player(player, movement):  # Движение персонажа
             player.move(x + 1, y)
 
 
-def count_time():
-    if sec // 300 < 2:
+def count_time(time):
+    if time // 60 < 2:
         pass_surf = load_image('gold.png')
         pass_rect = pass_surf.get_rect(bottomright=(1190, 90))
         screen.blit(pass_surf, pass_rect)
-    elif sec // 300 < 4:
+    elif time // 60 < 4:
         pass_surf = load_image('silver.png')
         pass_rect = pass_surf.get_rect(bottomright=(1190, 90))
         screen.blit(pass_surf, pass_rect)
@@ -214,7 +215,7 @@ if __name__ == '__main__':
     pg.key.set_repeat(200, 70)
 
     fps = 60
-    sec = 0
+    data_now = datetime.today()
 
     running = True
     while running:
@@ -231,6 +232,8 @@ if __name__ == '__main__':
                 elif event.key == pg.K_RIGHT:
                     move_player(player, 'right')
         screen.fill(pg.Color('black'))
+        sec = datetime.today() - data_now
+        time = int(str(sec.seconds))
 
         if not player.alive:
             pass_surf = load_image('pass.png')
@@ -268,13 +271,13 @@ if __name__ == '__main__':
                     pg.key.set_repeat(200, 70)
 
                     fps = 60
-                    sec = 0
+                    data_now = datetime.today()
         elif x_end == 21 and y_end == 0:
-            if sec // 300 < 2:
+            if time // 60 < 2:
                 pass_surf = load_image('end1.png')
                 pass_rect = pass_surf.get_rect()
                 screen.blit(pass_surf, pass_rect)
-            elif sec // 300 < 4:
+            elif time // 60 < 4:
                 pass_surf = load_image('end2.png')
                 pass_rect = pass_surf.get_rect()
                 screen.blit(pass_surf, pass_rect)
@@ -298,10 +301,9 @@ if __name__ == '__main__':
             enemy_group.draw(screen)
             enemy_group.update()
             player.update()
-            draw_text(f'Прошло времени  {str(sec // 300)} : {str((sec // 5) % 60)}', 775, 25)
+            draw_text(f'Прошло времени  {str(time // 60)} : {str(time % 60)}', 775, 25)
             draw_text(f'Собрано предметов:  {str(player.sum_coins)} / 10', 12, 25)
-            count_time()
+            count_time(time)
         pg.display.flip()
-        sec += 1
         pg.time.Clock().tick(fps)
     terminate()
