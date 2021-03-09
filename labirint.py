@@ -25,6 +25,8 @@ class Player(pg.sprite.Sprite):
                                                100 + tile_height * pos_y)
         self.coins = None
         self.sum_coins = 0
+        self.enemies = None
+        self.alive = True
 
     def move(self, x, y):
         self.pos = (x, y)
@@ -37,6 +39,9 @@ class Player(pg.sprite.Sprite):
             self.sum_coins += 1
             coin.kill()
 
+        if pg.sprite.spritecollideany(self, self.enemies):
+            self.alive = False
+
 
 used_coins = [1, 2, 3, 4, 5, 6, 7]
 
@@ -45,11 +50,42 @@ class Coin(pg.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(coins_group)
         k = random.choice(used_coins)
-        print(k)
-        self.image = load_image(f'coin{k}.png')
+        self.image = load_image(f'coin{k}.png').convert_alpha()
         del used_coins[used_coins.index(k)]
         self.rect = self.image.get_rect().move(tile_width * y,
                                                100 + tile_height * x)
+
+
+class Enemy(pg.sprite.Sprite):
+    def __init__(self, x, y, end_x, end_y):
+        super().__init__()
+        self.image = load_image('enemy.png').convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.x = tile_width * y
+        self.rect.y = 100 + tile_height * x
+        self.start_x = tile_width * y
+        self.start_y = 100 + tile_height * x
+        self.end_x = end_y * tile_width
+        self.end_y = end_x * tile_height + 100
+        self.direction = 1
+
+    def update(self):
+        if self.end_y > 0:
+            if self.rect.y >= self.end_y:
+                self.rect.y = self.end_y
+                self.direction = -1
+            if self.rect.y <= self.start_y:
+                self.rect.y = self.start_y
+                self.direction = 1
+            self.rect.y += tile_height * self.direction
+        else:
+            if self.rect.x >= self.end_x:
+                self.rect.x = self.end_x
+                self.direction = -1
+            if self.rect.x <= self.start_x:
+                self.rect.x = self.start_x
+                self.direction = 1
+            self.rect.x += tile_width * self.direction
 
 
 class Tile(pg.sprite.Sprite):
@@ -69,7 +105,6 @@ def load_level(filename):
             k2 = random.randint(0, 45)
             if levelmap[k1, k2] == '.' and [k1, k2] not in coins_coord:
                 coins_coord.append([k1, k2])
-                print(k1, k2, levelmap[k1, k2])
     return levelmap
 
 
@@ -135,9 +170,16 @@ if __name__ == '__main__':
 
     player.coins = coins_group
 
+    enemy_group = pg.sprite.Group()
+    player.enemies = enemy_group
+    enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44]]
+    for coord in enemies_coord:
+        enemy = Enemy(coord[0], coord[1], coord[2], coord[3])
+        enemy_group.add(enemy)
+
     pg.key.set_repeat(200, 70)
 
-    fps = 60
+    fps = 30
     running = True
     while running:
         for event in pg.event.get():
@@ -153,13 +195,27 @@ if __name__ == '__main__':
                 elif event.key == pg.K_RIGHT:
                     move_player(player, 'right')
         screen.fill(pg.Color('black'))
-        sun_surf = load_image('fon.png')
-        sun_rect = sun_surf.get_rect()
-        screen.blit(sun_surf, sun_rect)
-        tiles_group.draw(screen)
-        player_group.draw(screen)
-        coins_group.draw(screen)
-        player.update()
+
+        if not player.alive:
+            pass_surf = load_image('pass.png')
+            pass_rect = pass_surf.get_rect()
+            screen.blit(pass_surf, pass_rect)
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    terminate()
+                elif event.type == pg.KEYDOWN or \
+                        event.type == pg.MOUSEBUTTONDOWN:
+                    pass
+        else:
+            fon_surf = load_image('fon.png')
+            fon_rect = fon_surf.get_rect()
+            screen.blit(fon_surf, fon_rect)
+            tiles_group.draw(screen)
+            player_group.draw(screen)
+            coins_group.draw(screen)
+            enemy_group.draw(screen)
+            enemy_group.update()
+            player.update()
         pg.display.flip()
         time.Clock().tick(fps)
     terminate()
