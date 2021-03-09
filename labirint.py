@@ -4,6 +4,7 @@ import numpy as np
 import pygame as pg
 import random
 from pygame import mixer
+from datetime import datetime
 
 
 # функция для прорисовки текста
@@ -23,7 +24,7 @@ def load_image(name):  # Проверка фото на наличие
     return image
 
 
-x_end, y_end = 0, 0
+x_end, y_end = 0, 0  # Координаты
 
 
 class Player(pg.sprite.Sprite):
@@ -45,12 +46,11 @@ class Player(pg.sprite.Sprite):
         global x_end, y_end
         x_end, y_end = x, y
 
-    def update(self):
+    def update(self):  # Проверка на столкновение с предметом или врагом
         coins_hit_list = pg.sprite.spritecollide(self, self.coins, False)
         for coin in coins_hit_list:
             self.sum_coins += 1
             coin.kill()
-
 
         if pg.sprite.spritecollideany(self, self.enemies):
             self.alive = False
@@ -79,7 +79,7 @@ class Enemy(pg.sprite.Sprite):
         self.end_y = end_x * tile_height + 100
         self.direction = 1
 
-    def update(self):
+    def update(self):  # Движение врагов
         if self.end_y > self.start_y:
             if self.rect.y >= self.end_y:
                 self.rect.y = self.end_y
@@ -147,12 +147,12 @@ def move_player(player, movement):  # Движение персонажа
             player.move(x + 1, y)
 
 
-def count_time():
-    if sec // 300 < 2:
+def count_time(time):  # Расчёт того, какой сейчас кубок
+    if time // 60 < 2:
         pass_surf = load_image('gold.png')
         pass_rect = pass_surf.get_rect(bottomright=(1190, 90))
         screen.blit(pass_surf, pass_rect)
-    elif sec // 300 < 4:
+    elif time // 60 < 4:
         pass_surf = load_image('silver.png')
         pass_rect = pass_surf.get_rect(bottomright=(1190, 90))
         screen.blit(pass_surf, pass_rect)
@@ -173,24 +173,24 @@ if __name__ == '__main__':
     size = width, height = 1200, 800
     screen = pg.display.set_mode(size)
 
+    # включаем музыку
     pg.mixer.pre_init(44100, -16, 2, 512)
     mixer.init()
+    pg.mixer.music.load('data/music1.wav')
+    pg.mixer.music.set_volume(0.4)
+    pg.mixer.music.play(-1, 0.0, 5000)
 
+    # спрайты
     player_image = load_image('stand.png')
-
     tile_images = {
         'wall': load_image('box1.png')
     }
     tile_width = 26
     tile_height = 28
-
     player_group = pg.sprite.Group()
     tiles_group = pg.sprite.Group()
 
-    pg.mixer.music.load('data/music1.wav')
-    pg.mixer.music.set_volume(0.4)
-    pg.mixer.music.play(-1, 0.0, 5000)
-
+    # создание карты и предметов на ней
     used_coins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     coins_coord = []
     levelmap = load_level('level-01.map')
@@ -200,9 +200,9 @@ if __name__ == '__main__':
     for coord in coins_coord:
         coin = Coin(coord[0], coord[1])
         coins_group.add(coin)
-
     player.coins = coins_group
 
+    # создание врагов
     enemy_group = pg.sprite.Group()
     player.enemies = enemy_group
     enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44], [3, 18, 21, 18], [3, 28, 21, 28], [8, 5, 8, 14],
@@ -212,9 +212,8 @@ if __name__ == '__main__':
         enemy_group.add(enemy)
 
     pg.key.set_repeat(200, 70)
-
     fps = 60
-    sec = 0
+    data_now = datetime.today()
 
     running = True
     while running:
@@ -231,6 +230,8 @@ if __name__ == '__main__':
                 elif event.key == pg.K_RIGHT:
                     move_player(player, 'right')
         screen.fill(pg.Color('black'))
+        sec = datetime.today() - data_now
+        time = int(str(sec.seconds))
 
         if not player.alive:
             pass_surf = load_image('pass.png')
@@ -268,13 +269,13 @@ if __name__ == '__main__':
                     pg.key.set_repeat(200, 70)
 
                     fps = 60
-                    sec = 0
+                    data_now = datetime.today()
         elif x_end == 21 and y_end == 0:
-            if sec // 300 < 2:
+            if time // 60 < 2:
                 pass_surf = load_image('end1.png')
                 pass_rect = pass_surf.get_rect()
                 screen.blit(pass_surf, pass_rect)
-            elif sec // 300 < 4:
+            elif time // 60 < 4:
                 pass_surf = load_image('end2.png')
                 pass_rect = pass_surf.get_rect()
                 screen.blit(pass_surf, pass_rect)
@@ -298,10 +299,9 @@ if __name__ == '__main__':
             enemy_group.draw(screen)
             enemy_group.update()
             player.update()
-            draw_text(f'Прошло времени  {str(sec // 300)} : {str((sec // 5) % 60)}', 775, 25)
+            draw_text(f'Прошло времени  {str(time // 60)} : {str(time % 60)}', 775, 25)
             draw_text(f'Собрано предметов:  {str(player.sum_coins)} / 10', 12, 25)
-            count_time()
+            count_time(time)
         pg.display.flip()
-        sec += 1
         pg.time.Clock().tick(fps)
     terminate()
