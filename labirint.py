@@ -6,6 +6,13 @@ from pygame import time
 import random
 
 
+# функция для прорисовки текста
+def draw_text(text, x, y):
+    font = pg.font.SysFont('Franklin Gothic Heavy', 28)
+    img = font.render(text, True, (255, 79, 0))
+    screen.blit(img, (x, y))
+
+
 def load_image(name):  # Проверка фото на наличие
     filename = os.path.join('data', name)
     try:
@@ -43,9 +50,6 @@ class Player(pg.sprite.Sprite):
             self.alive = False
 
 
-used_coins = [1, 2, 3, 4, 5, 6, 7]
-
-
 class Coin(pg.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(coins_group)
@@ -70,7 +74,7 @@ class Enemy(pg.sprite.Sprite):
         self.direction = 1
 
     def update(self):
-        if self.end_y > 0:
+        if self.end_y > self.start_y:
             if self.rect.y >= self.end_y:
                 self.rect.y = self.end_y
                 self.direction = -1
@@ -100,7 +104,7 @@ def load_level(filename):
     filename = os.path.join('data', filename)
     with open(filename, 'r') as mapfile:
         levelmap = np.array([list(i) for i in [line.strip() for line in mapfile]])
-        while len(coins_coord) < 7:
+        while len(coins_coord) < 10:
             k1 = random.randint(0, 24)
             k2 = random.randint(0, 45)
             if levelmap[k1, k2] == '.' and [k1, k2] not in coins_coord:
@@ -137,6 +141,21 @@ def move_player(player, movement):  # Движение персонажа
             player.move(x + 1, y)
 
 
+def count_time():
+    if sec // 180 < 1:
+        pass_surf = load_image('gold.png')
+        pass_rect = pass_surf.get_rect(bottomright=(1190, 90))
+        screen.blit(pass_surf, pass_rect)
+    elif sec // 180 < 2:
+        pass_surf = load_image('silver.png')
+        pass_rect = pass_surf.get_rect(bottomright=(1190, 90))
+        screen.blit(pass_surf, pass_rect)
+    else:
+        pass_surf = load_image('bronze.png')
+        pass_rect = pass_surf.get_rect(bottomright=(1190, 90))
+        screen.blit(pass_surf, pass_rect)
+
+
 def terminate():
     pg.quit()
     sys.exit()
@@ -159,6 +178,7 @@ if __name__ == '__main__':
     player_group = pg.sprite.Group()
     tiles_group = pg.sprite.Group()
 
+    used_coins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     coins_coord = []
     levelmap = load_level('level-01.map')
     player, level_x, level_y = generate_level(levelmap)
@@ -172,14 +192,17 @@ if __name__ == '__main__':
 
     enemy_group = pg.sprite.Group()
     player.enemies = enemy_group
-    enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44]]
+    enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44], [3, 18, 21, 18], [3, 28, 21, 28], [8, 5, 8, 14],
+                     [17, 5, 17, 14], [8, 32, 8, 40], [17, 32, 17, 40]]
     for coord in enemies_coord:
         enemy = Enemy(coord[0], coord[1], coord[2], coord[3])
         enemy_group.add(enemy)
 
     pg.key.set_repeat(200, 70)
 
-    fps = 30
+    fps = 60
+    sec = 0
+
     running = True
     while running:
         for event in pg.event.get():
@@ -205,7 +228,34 @@ if __name__ == '__main__':
                     terminate()
                 elif event.type == pg.KEYDOWN or \
                         event.type == pg.MOUSEBUTTONDOWN:
-                    pass
+                    player.alive = True
+                    player_group = pg.sprite.Group()
+                    tiles_group = pg.sprite.Group()
+
+                    used_coins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                    coins_coord = []
+                    levelmap = load_level('level-01.map')
+                    player, level_x, level_y = generate_level(levelmap)
+
+                    coins_group = pg.sprite.Group()
+                    for coord in coins_coord:
+                        coin = Coin(coord[0], coord[1])
+                        coins_group.add(coin)
+
+                    player.coins = coins_group
+
+                    enemy_group = pg.sprite.Group()
+                    player.enemies = enemy_group
+                    enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44], [3, 18, 21, 18], [3, 28, 21, 28], [8, 5, 8, 14],
+                                     [17, 5, 17, 14], [8, 32, 8, 40], [17, 32, 17, 40]]
+                    for coord in enemies_coord:
+                        enemy = Enemy(coord[0], coord[1], coord[2], coord[3])
+                        enemy_group.add(enemy)
+
+                    pg.key.set_repeat(200, 70)
+
+                    fps = 60
+                    sec = 0
         else:
             fon_surf = load_image('fon.png')
             fon_rect = fon_surf.get_rect()
@@ -216,6 +266,10 @@ if __name__ == '__main__':
             enemy_group.draw(screen)
             enemy_group.update()
             player.update()
+            draw_text(f'Прошло времени  {str(sec // 180)} : {str((sec // 3) % 60)}', 775, 25)
+            draw_text(f'Собрано предметов:  {str(player.sum_coins)} / 10', 12, 25)
+            count_time()
         pg.display.flip()
+        sec += 1
         time.Clock().tick(fps)
     terminate()
