@@ -98,7 +98,10 @@ if __name__ == '__main__':
     # включаем музыку
     pg.mixer.pre_init(44100, -16, 2, 512)
     mixer.init()
-    pg.mixer.music.load('data/sea.wav')
+    try:
+        pg.mixer.music.load('data/sea.mp3')
+    except:
+        pg.mixer.music.load('data/sea.wav')
     pg.mixer.music.set_volume(0.4)
     pg.mixer.music.play(-1, 0.0, 5000)
 

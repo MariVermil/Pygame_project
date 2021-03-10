@@ -397,13 +397,19 @@ class Game:
         self.coin_group = pg.sprite.Group()
         self.mobs = pg.sprite.Group()
         # звуки
-        self.coin_fx = pg.mixer.Sound('data/coin_pick.mp3')
+        try:
+            self.coin_fx = pg.mixer.Sound('data/coin_pick.mp3')
+            self.jump_fx = pg.mixer.Sound('data/jump.mp3')
+            self.game_over_fx = pg.mixer.Sound('data/ded.mp3')
+            pg.mixer.music.load('data/theme.mp3')
+        except:
+            self.coin_fx = pg.mixer.Sound('data/coin_pick.wav')
+            self.jump_fx = pg.mixer.Sound('data/jump.wav')
+            self.game_over_fx = pg.mixer.Sound('data/ded.wav')
+            pg.mixer.music.load('data/theme.wav')
         self.coin_fx.set_volume(0.6)
-        self.jump_fx = pg.mixer.Sound('data/jump.mp3')
         self.jump_fx.set_volume(0.05)
-        self.game_over_fx = pg.mixer.Sound('data/ded.mp3')
         self.game_over_fx.set_volume(0.8)
-        pg.mixer.music.load('data/theme.mp3')
         pg.mixer.music.set_volume(0.4)
         pg.mixer.music.play(-1, 0.0, 5000)
         # генерация уровня

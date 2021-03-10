@@ -1,7 +1,7 @@
 import pygame as pg
 import numpy as np
 import os
-from random import randint
+import random
 
 
 def load_image(name):
@@ -151,7 +151,7 @@ class Board:
         flag = True
         while flag:
             # выбор случайной клетки для противника
-            choise = [randint(0, 2), randint(0, 2)]
+            choise = [random.randint(0, 2), random.randint(0, 2)]
             if self.board[choise[0]][choise[1]] == 0:
                 flag = False
         if self.status == 2:

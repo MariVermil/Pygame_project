@@ -60,7 +60,7 @@ class Coin(pg.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(coins_group)
         k = random.choice(used_coins)
-        self.image = load_image(f'coin{k}.png').convert_alpha()
+        self.image = load_image(f'thing{k}.png').convert_alpha()
         del used_coins[used_coins.index(k)]
         self.rect = self.image.get_rect().move(tile_width * y,
                                                100 + tile_height * x)
@@ -69,7 +69,7 @@ class Coin(pg.sprite.Sprite):
 class Enemy(pg.sprite.Sprite):
     def __init__(self, x, y, end_x, end_y):
         super().__init__()
-        self.image = load_image('enemy.png').convert_alpha()
+        self.image = load_image('enemy1.png').convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.x = tile_width * y
         self.rect.y = 100 + tile_height * x
@@ -176,12 +176,15 @@ if __name__ == '__main__':
     # включаем музыку
     pg.mixer.pre_init(44100, -16, 2, 512)
     mixer.init()
-    pg.mixer.music.load('data/music1.wav')
+    try:
+        pg.mixer.music.load('data/music1.wav')
+    except:
+        pg.mixer.music.load('data/music1.mp3')
     pg.mixer.music.set_volume(0.4)
     pg.mixer.music.play(-1, 0.0, 5000)
 
     # спрайты
-    player_image = load_image('stand.png')
+    player_image = load_image('stand1.png')
     tile_images = {
         'wall': load_image('box1.png')
     }
@@ -193,7 +196,7 @@ if __name__ == '__main__':
     # создание карты и предметов на ней
     used_coins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     coins_coord = []
-    levelmap = load_level('level-01.map')
+    levelmap = load_level('level-02.map')
     player, level_x, level_y = generate_level(levelmap)
 
     coins_group = pg.sprite.Group()
@@ -248,7 +251,7 @@ if __name__ == '__main__':
 
                     used_coins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                     coins_coord = []
-                    levelmap = load_level('level-01.map')
+                    levelmap = load_level('level-02.map')
                     player, level_x, level_y = generate_level(levelmap)
 
                     coins_group = pg.sprite.Group()
