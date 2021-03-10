@@ -15,16 +15,32 @@ def return_screen(name):
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 terminate()
-            elif event.type == pg.KEYDOWN or event.type == pg.MOUSEBUTTONDOWN:
-                return  # Начинаем игру
+            elif event.type == pg.KEYDOWN:
+                if event.key == pg.K_SPACE:
+                    return  # Начинаем игру
+        pg.display.flip()
+
+
+def end_screen():
+    # конечная картинка
+    end_pic = load_image('end.png')
+    screen.blit(end_pic, (0, 0))
+    while True:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                terminate()
         pg.display.flip()
 
 
 # функция для прорисовки текста
-def draw_text(text, x, y):
-    font = pg.font.SysFont('Franklin Gothic Heavy', 35)
-    img = font.render(text, True, (255, 79, 0))
-    screen.blit(img, (x, y))
+def draw_text(text, x, y, font=None):
+    if font is None:
+        font = pg.font.SysFont('Franklin Gothic Heavy', 35)
+        img = font.render(text, True, (255, 79, 0))
+        screen.blit(img, (x, y))
+    else:
+        img = font.render(text, True, (0, 5, 5))
+        run.screen.blit(img, (x, y))
 
 
 def load_image(name):  # Проверка фото на наличие
@@ -66,7 +82,8 @@ class Board_puzzle:
     def get_click(self, mouse_pos):
         status = self.get_cell(mouse_pos)
         if status != 'None':
-            self.map[status[0]][status[1]] = (self.map[status[0]][status[1]] + 1) % 4
+            self.map[status[0]][status[1]] = \
+                (self.map[status[0]][status[1]] + 1) % 4
 
     def get_cell(self, mouse_pos):
         x = mouse_pos[0]
@@ -82,7 +99,8 @@ class Board_puzzle:
 def paint_fish():
     for elem in coords_fish:
         screen.blit(load_image(f'fish{elem[4]}.png'),
-                    load_image(f'fish{elem[4]}.png').get_rect(bottomright=(elem[0], elem[1])))
+                    load_image(f'fish{elem[4]}.png').get_rect(
+                        bottomright=(elem[0], elem[1])))
         elem[0] += (v * clock.tick(60) / 1000) * elem[2]
         elem[1] += (v * clock.tick(60) / 1000) * elem[3]
 
@@ -182,7 +200,8 @@ class Tile1(pg.sprite.Sprite):
 def load_level1(filename):
     filename = os.path.join('data', filename)
     with open(filename, 'r') as mapfile:
-        levelmap = np.array([list(i) for i in [line.strip() for line in mapfile]])
+        levelmap = np.array([list(i) for i in
+                             [line.strip() for line in mapfile]])
         while len(coins_coord) < 10:
             k1 = random.randint(0, 24)
             k2 = random.randint(0, 45)
@@ -237,7 +256,8 @@ def count_time(time):  # Расчёт того, какой сейчас кубо
 
 def labirint_run():
     pg.display.set_caption('Лабиринт')
-    global player_image, tile_images, tile_width, tile_height, used_coins, levelmap, level_x, level_y, \
+    global player_image, tile_images, tile_width, \
+        tile_height, used_coins, levelmap, level_x, level_y, \
         coins_coord, tiles_group, coins_group, player_group, run
 
     # включаем музыку
@@ -275,7 +295,8 @@ def labirint_run():
     # создание врагов
     enemy_group = pg.sprite.Group()
     player.enemies = enemy_group
-    enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44], [3, 18, 21, 18], [3, 28, 21, 28], [8, 5, 8, 14],
+    enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44], [3, 18, 21, 18],
+                     [3, 28, 21, 28], [8, 5, 8, 14],
                      [17, 5, 17, 14], [8, 32, 8, 40], [17, 32, 17, 40]]
     for coord in enemies_coord:
         enemy = Enemy_labirint(coord[0], coord[1], coord[2], coord[3])
@@ -289,7 +310,7 @@ def labirint_run():
     while running:
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                running = False
+                terminate()
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_UP:
                     move_player(player, 'up')
@@ -330,17 +351,20 @@ def labirint_run():
 
                     enemy_group = pg.sprite.Group()
                     player.enemies = enemy_group
-                    enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44], [3, 18, 21, 18], [3, 28, 21, 28], [8, 5, 8, 14],
-                                     [17, 5, 17, 14], [8, 32, 8, 40], [17, 32, 17, 40]]
+                    enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44],
+                                     [3, 18, 21, 18], [3, 28, 21, 28],
+                                     [8, 5, 8, 14], [17, 5, 17, 14],
+                                     [8, 32, 8, 40], [17, 32, 17, 40]]
                     for coord in enemies_coord:
-                        enemy = Enemy_labirint(coord[0], coord[1], coord[2], coord[3])
+                        enemy = Enemy_labirint(coord[0], coord[1],
+                                               coord[2], coord[3])
                         enemy_group.add(enemy)
 
-                    pg.key.set_repeat(200, 70)
+                    pg.key.set_repeat(100, 70)
 
                     fps = 60
                     data_now = datetime.today()
-        elif x_end == 21 and y_end == 0:
+        elif x_end == 21 and y_end == 0 and player.sum_coins == 10:
             if time // 60 < 2:
                 pass_surf = load_image('end1.png')
                 pass_rect = pass_surf.get_rect()
@@ -355,10 +379,10 @@ def labirint_run():
                 screen.blit(pass_surf, pass_rect)
             for event in pg.event.get():
                 if event.type == pg.QUIT:
+                    running = False
                     terminate()
                 elif event.type == pg.KEYDOWN or \
                         event.type == pg.MOUSEBUTTONDOWN:
-                    running = False
                     run = Game()
                     while run.running:
                         run.new()
@@ -373,18 +397,14 @@ def labirint_run():
             enemy_group.draw(screen)
             enemy_group.update()
             player.update()
-            draw_text(f'Прошло времени  {str(time // 60)} : {str(time % 60)}', 775, 25)
-            draw_text(f'Собрано предметов:  {str(player.sum_coins)} / 10', 12, 25)
+            draw_text(f'Прошло времени  '
+                      f'{str(time // 60)} : {str(time % 60)}', 775, 25)
+            draw_text(f'Собрано предметов:  '
+                      f'{str(player.sum_coins)} / 10', 12, 25)
             count_time(time)
         pg.display.flip()
         pg.time.Clock().tick(fps)
     terminate()
-
-
-# функция для прорисовки текста
-def draw_text2(text, font, x, y):
-    img = font.render(text, True, (0, 5, 5))
-    run.screen.blit(img, (x, y))
 
 
 def load_level(filename):
@@ -439,7 +459,8 @@ class School(pg.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         pg.sprite.Sprite.__init__(self)
         self.image = load_image('house.png')
-        self.rect = self.image.get_rect().move(pos_x * run.tile_width, (pos_y * run.tile_height) - 400)
+        self.rect = self.image.get_rect().move(pos_x * run.tile_width,
+                                               (pos_y * run.tile_height) - 400)
 
 
 # разрезание листа с картинками на отдельные кадры
@@ -599,7 +620,8 @@ class Player(pg.sprite.Sprite):
                     self.on_ground = True
                 # столкновение с лавой/врагом
                 if pg.sprite.spritecollide(self, self.game.mobs, False) or \
-                        pg.sprite.spritecollide(self, self.game.lava_group, False):
+                        pg.sprite.spritecollide(self,
+                                                self.game.lava_group, False):
                     self.game.game_over = 1
                     self.game.game_over_fx.play()
 
@@ -721,18 +743,22 @@ class Game:
         self.clock = pg.time.Clock()
         self.screen = pg.display.set_mode(size)
         self.fps = 60
-        self.background, self.background_rect = load_image('background.png'), load_image('background.png').get_rect()
+        self.background, self.background_rect = load_image('background.png'), \
+                                                load_image('background.png').get_rect()
 
     def new(self):
         # Тайлы
         self.tile_images = {
-            'wall': load_image('grass.png'), 'dirt': load_image('dark_dirt.png'),
+            'wall': load_image('grass.png'),
+            'dirt': load_image('dark_dirt.png'),
             'grass_plate_edge_r': load_image('grass_edge_plate_right.png'),
             'grass_plate_edge_l': load_image('grass_edge_plate_left.png'),
-            'grass_plate': load_image('grass_plate.png'), 'half': load_image('dark_dirt_half.png'),
-            'half2': load_image('dark_dirt_half2.png'), 'lava': load_image('lava.png'),
-            'lava_fill': load_image('lava_fill.png'), 'school': load_image('house.png')
-        }
+            'grass_plate': load_image('grass_plate.png'),
+            'half': load_image('dark_dirt_half.png'),
+            'half2': load_image('dark_dirt_half2.png'),
+            'lava': load_image('lava.png'),
+            'lava_fill': load_image('lava_fill.png'),
+            'school': load_image('house.png')}
         # размер тайлов:
         self.tile_width = self.tile_height = 70
         # кнопки
@@ -804,7 +830,7 @@ class Game:
             else:
                 self.restart_check = False
             if pg.Rect.colliderect(self.player.rect, (9630, 750, 150, 100)):
-                if self.score != 15:
+                if self.score == 15:
                     self.playing = False
                     self.running = False
                     return_screen('4pic.png')
@@ -821,9 +847,12 @@ class Game:
                                 board.get_click(event.pos)
                         screen.blit(pic, pic.get_rect())
                         # отрисовка счетчика, выход после получения 3 очков
-                        draw_text1(f'{board.count}/3', pg.font.SysFont('Comic Sans', 100), 1000, 100)
+                        draw_text(f'{board.count}/3',
+                                  1000, 100, pg.font.SysFont('Comic Sans',
+                                                             100))
                         if board.count == 3:
                             running = False
+                            end_screen()
                         board.render()
                         pg.display.flip()
                     pg.quit()
@@ -837,7 +866,7 @@ class Game:
         if pg.sprite.spritecollide(self.player, self.coin_group, True):
             self.score += 1
             self.coin_fx.play()
-        draw_text2(f'монет:  {str(self.score)} / 15', self.font, 12, 10)
+        draw_text(f'монет:  {str(self.score)} / 15', 12, 10, self.font)
         # рестарт
         if self.game_over == 1:
             self.restart_button.draw()
@@ -845,11 +874,6 @@ class Game:
                 self.player.reset(self)
                 self.game_over = 0
         pg.display.flip()
-
-
-def draw_text1(text, font, x, y):
-    img = font.render(text, True, (230, 248, 245))
-    screen.blit(img, (x, y))
 
 
 class Board:
@@ -874,46 +898,62 @@ class Board:
     def win_check(self):
         # диагонали
         if self.board[0][0] == self.board[1][1] == self.board[2][2]:
-            if self.board[0][0] == 2 and self.board[1][1] == 2 and self.board[2][2] == 2:
+            if self.board[0][0] == 2 and self.board[1][1] == 2 and \
+                    self.board[2][2] == 2:
                 self.winner = 2
-            elif self.board[0][0] == 1 and self.board[1][1] == 1 and self.board[2][2] == 2:
+            elif self.board[0][0] == 1 and self.board[1][1] == 1 and \
+                    self.board[2][2] == 2:
                 self.winner = 1
         if self.board[0][2] == self.board[1][1] == self.board[2][0]:
-            if self.board[0][2] == 2 and self.board[1][1] == 2 and self.board[2][0] == 2:
+            if self.board[0][2] == 2 and self.board[1][1] == 2 and \
+                    self.board[2][0] == 2:
                 self.winner = 2
-            elif self.board[0][2] == 1 and self.board[1][1] == 1 and self.board[2][0] == 1:
+            elif self.board[0][2] == 1 and self.board[1][1] == 1 and \
+                    self.board[2][0] == 1:
                 self.winner = 1
         # горизонтали
         if self.board[0][0] == self.board[0][1] == self.board[0][2]:
-            if self.board[0][0] == 2 and self.board[0][1] == 2 and self.board[0][2] == 2:
+            if self.board[0][0] == 2 and self.board[0][1] == 2 and \
+                    self.board[0][2] == 2:
                 self.winner = 2
-            elif self.board[0][0] == 1 and self.board[0][1] == 1 and self.board[0][2] == 1:
+            elif self.board[0][0] == 1 and self.board[0][1] == 1 and \
+                    self.board[0][2] == 1:
                 self.winner = 1
         if self.board[1][0] == self.board[1][1] == self.board[1][2]:
-            if self.board[1][0] == 2 and self.board[1][1] == 2 and self.board[1][2] == 2:
+            if self.board[1][0] == 2 and self.board[1][1] == 2 and \
+                    self.board[1][2] == 2:
                 self.winner = 2
-            elif self.board[1][0] == 1 and self.board[1][1] == 1 and self.board[1][2] == 1:
+            elif self.board[1][0] == 1 and self.board[1][1] == 1 and \
+                    self.board[1][2] == 1:
                 self.winner = 1
         if self.board[2][0] == self.board[2][1] == self.board[2][2]:
-            if self.board[2][0] == 2 and self.board[2][1] == 2 and self.board[2][2] == 2:
+            if self.board[2][0] == 2 and self.board[2][1] == 2 and \
+                    self.board[2][2] == 2:
                 self.winner = 2
-            elif self.board[2][0] == 1 and self.board[2][1] == 1 and self.board[2][2] == 1:
+            elif self.board[2][0] == 1 and self.board[2][1] == 1 and \
+                    self.board[2][2] == 1:
                 self.winner = 1
         # вертикали
         if self.board[0][0] == self.board[1][0] == self.board[2][0]:
-            if self.board[0][0] == 2 and self.board[1][0] == 2 and self.board[2][0] == 2:
+            if self.board[0][0] == 2 and self.board[1][0] == 2 and \
+                    self.board[2][0] == 2:
                 self.winner = 2
-            elif self.board[0][0] == 1 and self.board[1][0] == 1 and self.board[2][0] == 1:
+            elif self.board[0][0] == 1 and self.board[1][0] == 1 and \
+                    self.board[2][0] == 1:
                 self.winner = 1
         if self.board[0][1] == self.board[1][1] == self.board[2][1]:
-            if self.board[0][1] == 2 and self.board[1][1] == 2 and self.board[2][1] == 2:
+            if self.board[0][1] == 2 and self.board[1][1] == 2 and \
+                    self.board[2][1] == 2:
                 self.winner = 2
-            elif self.board[0][1] == 1 and self.board[1][1] == 1 and self.board[2][1] == 1:
+            elif self.board[0][1] == 1 and self.board[1][1] == 1 and \
+                    self.board[2][1] == 1:
                 self.winner = 1
         if self.board[0][2] == self.board[1][2] == self.board[2][2]:
-            if self.board[0][2] == 2 and self.board[1][2] == 2 and self.board[2][2] == 2:
+            if self.board[0][2] == 2 and self.board[1][2] == 2 and \
+                    self.board[2][2] == 2:
                 self.winner = 2
-            elif self.board[0][2] == 1 and self.board[1][2] == 1 and self.board[2][2] == 1:
+            elif self.board[0][2] == 1 and self.board[1][2] == 1 and \
+                    self.board[2][2] == 1:
                 self.winner = 1
         # ничья
         check = False
@@ -931,22 +971,22 @@ class Board:
         # вывод сообщения о выигрыше/проигрыше
         if self.winner == 2:
             self.timer += 1
-            draw_text1('вы выиграли :)', pg.font.SysFont('Comic Sans', 60), 60, 710)
+            draw_text('вы выиграли :)', 60, 710, pg.font.SysFont('Comic Sans', 60))
             if self.timer == 100:
                 self.count += 1
                 self.reset()
         elif self.winner == 1:
             self.timer += 1
-            draw_text1('вы проиграли :(', pg.font.SysFont('Comic Sans', 60), 60, 710)
+            draw_text('вы проиграли :(', 60, 710, pg.font.SysFont('Comic Sans', 60))
             if self.timer == 100:
                 self.reset()
         elif self.winner == 3:
             self.timer += 1
-            draw_text1('ничья!', pg.font.SysFont('Comic Sans', 60), 60, 710)
+            draw_text('ничья!', 60, 710, pg.font.SysFont('Comic Sans', 60))
             if self.timer == 100:
                 self.reset()
         else:
-            draw_text1('', pg.font.SysFont('Comic Sans', 60), 60, 710)
+            draw_text('', 60, 710, pg.font.SysFont('Comic Sans', 60))
 
     def render(self):
         # прорисовка
@@ -954,9 +994,13 @@ class Board:
             for i in range(self.row):
                 for j in range(self.col):
                     if self.board[i][j] == 2:
-                        screen.blit(self.o_pic, (j * self.cell_size + self.left, i * self.cell_size + self.top, 100, 100))
+                        screen.blit(self.o_pic,
+                                    (j * self.cell_size + self.left, i *
+                                     self.cell_size + self.top, 100, 100))
                     elif self.board[i][j] == 1:
-                        screen.blit(self.x_pic, (j * self.cell_size + self.left, i * self.cell_size + self.top, 100, 100))
+                        screen.blit(self.x_pic,
+                                    (j * self.cell_size + self.left, i *
+                                     self.cell_size + self.top, 100, 100))
                     pg.draw.rect(screen,
                                  pg.Color('white'),
                                  (j * self.cell_size + self.left,
@@ -1041,11 +1085,12 @@ if __name__ == '__main__':
 
     coords_fish = []
     for _ in range(10):
-        coords_fish.append([random.randint(100, 1150), random.randint(100, 750), -1, -1, random.randint(1, 6)])
+        coords_fish.append([random.randint(100, 1150), random.
+                           randint(100, 750), -1, -1, random.randint(1, 6)])
     v = 200
     clock = pg.time.Clock()
 
-    pg.key.set_repeat(200, 70)
+    pg.key.set_repeat(100, 70)
     fps = 60
     data_now = datetime.today()
 
@@ -1092,8 +1137,8 @@ if __name__ == '__main__':
             screen.blit(fon_surf, fon_rect)
             paint_fish()
             board.draw_picture()
-            draw_text(f'Прошло времени  {str(time // 60)} : {str(time % 60)} из 1 : 30', 750, 40)
-
+            draw_text(f'Прошло времени  {str(time // 60)} : '
+                      f'{str(time % 60)} из 1 : 30', 750, 40)
         pg.display.flip()
         pg.time.Clock().tick(fps)
     terminate()
