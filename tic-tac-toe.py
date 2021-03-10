@@ -13,7 +13,7 @@ def load_image(name):
     return image
 
 
-def draw_text(text, font, x, y):
+def draw_text1(text, font, x, y):
     img = font.render(text, True, (230, 248, 245))
     screen.blit(img, (x, y))
 
@@ -97,22 +97,22 @@ class Board:
         # вывод сообщения о выигрыше/проигрыше
         if self.winner == 2:
             self.timer += 1
-            draw_text('вы выиграли :)', pg.font.SysFont('Comic Sans', 60), 60, 710)
+            draw_text1('вы выиграли :)', pg.font.SysFont('Comic Sans', 60), 60, 710)
             if self.timer == 100:
                 self.count += 1
                 self.reset()
         elif self.winner == 1:
             self.timer += 1
-            draw_text('вы проиграли :(', pg.font.SysFont('Comic Sans', 60), 60, 710)
+            draw_text1('вы проиграли :(', pg.font.SysFont('Comic Sans', 60), 60, 710)
             if self.timer == 100:
                 self.reset()
         elif self.winner == 3:
             self.timer += 1
-            draw_text('ничья!', pg.font.SysFont('Comic Sans', 60), 60, 710)
+            draw_text1('ничья!', pg.font.SysFont('Comic Sans', 60), 60, 710)
             if self.timer == 100:
                 self.reset()
         else:
-            draw_text('', pg.font.SysFont('Comic Sans', 60), 60, 710)
+            draw_text1('', pg.font.SysFont('Comic Sans', 60), 60, 710)
 
     def render(self):
         # прорисовка
@@ -191,7 +191,7 @@ if __name__ == '__main__':
                 board.get_click(event.pos)
         screen.blit(pic, pic.get_rect())
         # отрисовка счетчика, выход после получения 3 очков
-        draw_text(f'{board.count}/3', pg.font.SysFont('Comic Sans', 100), 1000, 100)
+        draw_text1(f'{board.count}/3', pg.font.SysFont('Comic Sans', 100), 1000, 100)
         if board.count == 3:
             running = False
         board.render()

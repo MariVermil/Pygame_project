@@ -6,7 +6,7 @@ from pygame import mixer
 
 
 # функция для прорисовки текста
-def draw_text(text, font, x, y):
+def draw_text2(text, font, x, y):
     img = font.render(text, True, (0, 5, 5))
     run.screen.blit(img, (x, y))
 
@@ -347,19 +347,6 @@ def terminate():
 vec = pg.math.Vector2
 
 
-def start_screen():
-    # заставка
-    start_screen_background = load_image('start-screen.png')
-    run.screen.blit(start_screen_background, (0, 0))
-    while True:
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                terminate()
-            elif event.type == pg.KEYDOWN or event.type == pg.MOUSEBUTTONDOWN:
-                return  # Начинаем игру
-        pg.display.flip()
-
-
 class Game:
     def __init__(self):
         self.running = True
@@ -430,7 +417,6 @@ class Game:
         self.run()
 
     def run(self):
-        start_screen()
         self.running = True
         while self.running:
             self.playing = True
@@ -469,7 +455,7 @@ class Game:
         if pg.sprite.spritecollide(self.player, self.coin_group, True):
             self.score += 1
             self.coin_fx.play()
-        draw_text(f'монет:  {str(self.score)} / 15', self.font, 12, 10)
+        draw_text2(f'монет:  {str(self.score)} / 15', self.font, 12, 10)
         # рестарт
         if self.game_over == 1:
             self.restart_button.draw()

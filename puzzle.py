@@ -23,7 +23,7 @@ def load_image(name):  # Проверка фото на наличие
     return image
 
 
-class Board:
+class Board_puzzle:
     def __init__(self, row, col):
         self.row = row  # кол-во строк
         self.col = col  # кол-во столбцов
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     pg.display.set_caption('Пазл')
     size = width, height = 1200, 800
     screen = pg.display.set_mode(size)
-    board = Board(3, 5)
+    board = Board_puzzle(3, 5)
 
     # включаем музыку
     pg.mixer.pre_init(44100, -16, 2, 512)
@@ -148,7 +148,7 @@ if __name__ == '__main__':
                     terminate()
                 elif event.type == pg.KEYDOWN or \
                         event.type == pg.MOUSEBUTTONDOWN:
-                    board = Board(3, 5)
+                    board = Board_puzzle(3, 5)
                     data_now = datetime.today()
         else:
             screen.fill(pg.Color('black'))

@@ -27,7 +27,7 @@ def load_image(name):  # Проверка фото на наличие
 x_end, y_end = 0, 0  # Координаты
 
 
-class Player(pg.sprite.Sprite):
+class Player_labirint(pg.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group)
         self.image = player_image
@@ -56,7 +56,7 @@ class Player(pg.sprite.Sprite):
             self.alive = False
 
 
-class Coin(pg.sprite.Sprite):
+class Thing(pg.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(coins_group)
         k = random.choice(used_coins)
@@ -66,7 +66,7 @@ class Coin(pg.sprite.Sprite):
                                                100 + tile_height * x)
 
 
-class Enemy(pg.sprite.Sprite):
+class Enemy_labirint(pg.sprite.Sprite):
     def __init__(self, x, y, end_x, end_y):
         super().__init__()
         self.image = load_image('enemy1.png').convert_alpha()
@@ -98,7 +98,7 @@ class Enemy(pg.sprite.Sprite):
             self.rect.x += tile_width * self.direction
 
 
-class Tile(pg.sprite.Sprite):
+class Tile1(pg.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(tiles_group)
         self.image = tile_images[tile_type]
@@ -106,7 +106,7 @@ class Tile(pg.sprite.Sprite):
                                                100 + tile_height * pos_y)
 
 
-def load_level(filename):
+def load_level1(filename):
     filename = os.path.join('data', filename)
     with open(filename, 'r') as mapfile:
         levelmap = np.array([list(i) for i in [line.strip() for line in mapfile]])
@@ -118,16 +118,16 @@ def load_level(filename):
     return levelmap
 
 
-def generate_level(level):
+def generate_level1(level):
     player, x, y = None, None, None
     row, col = level.shape
     for y in range(row):
         for x in range(col):
             if level[y, x] == '#':
-                Tile('wall', x, y)
+                Tile1('wall', x, y)
             elif level[y, x] == '@':
                 level[y, x] = '.'
-                player = Player(x, y)
+                player = Player_labirint(x, y)
     return player, x, y
 
 
@@ -196,12 +196,12 @@ if __name__ == '__main__':
     # создание карты и предметов на ней
     used_coins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     coins_coord = []
-    levelmap = load_level('level-02.map')
-    player, level_x, level_y = generate_level(levelmap)
+    levelmap = load_level1('level-02.map')
+    player, level_x, level_y = generate_level1(levelmap)
 
     coins_group = pg.sprite.Group()
     for coord in coins_coord:
-        coin = Coin(coord[0], coord[1])
+        coin = Thing(coord[0], coord[1])
         coins_group.add(coin)
     player.coins = coins_group
 
@@ -211,7 +211,7 @@ if __name__ == '__main__':
     enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44], [3, 18, 21, 18], [3, 28, 21, 28], [8, 5, 8, 14],
                      [17, 5, 17, 14], [8, 32, 8, 40], [17, 32, 17, 40]]
     for coord in enemies_coord:
-        enemy = Enemy(coord[0], coord[1], coord[2], coord[3])
+        enemy = Enemy_labirint(coord[0], coord[1], coord[2], coord[3])
         enemy_group.add(enemy)
 
     pg.key.set_repeat(200, 70)
@@ -251,12 +251,12 @@ if __name__ == '__main__':
 
                     used_coins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                     coins_coord = []
-                    levelmap = load_level('level-02.map')
-                    player, level_x, level_y = generate_level(levelmap)
+                    levelmap = load_level1('level-02.map')
+                    player, level_x, level_y = generate_level1(levelmap)
 
                     coins_group = pg.sprite.Group()
                     for coord in coins_coord:
-                        coin = Coin(coord[0], coord[1])
+                        coin = Thing(coord[0], coord[1])
                         coins_group.add(coin)
 
                     player.coins = coins_group
@@ -266,7 +266,7 @@ if __name__ == '__main__':
                     enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44], [3, 18, 21, 18], [3, 28, 21, 28], [8, 5, 8, 14],
                                      [17, 5, 17, 14], [8, 32, 8, 40], [17, 32, 17, 40]]
                     for coord in enemies_coord:
-                        enemy = Enemy(coord[0], coord[1], coord[2], coord[3])
+                        enemy = Enemy_labirint(coord[0], coord[1], coord[2], coord[3])
                         enemy_group.add(enemy)
 
                     pg.key.set_repeat(200, 70)
