@@ -266,7 +266,7 @@ def labirint_run():
     except:
         pg.mixer.music.load('data/music1.mp3')
     pg.mixer.music.set_volume(0.4)
-    pg.mixer.music.play(-1, 0.0, 5000)
+    pg.mixer.music.play(-1, 0.0)
 
     return_screen('2pic.png')
 
@@ -785,7 +785,7 @@ class Game:
         self.jump_fx.set_volume(0.05)
         self.game_over_fx.set_volume(0.8)
         pg.mixer.music.set_volume(0.4)
-        pg.mixer.music.play(-1, 0.0, 5000)
+        pg.mixer.music.play(-1, 0.0)
         # генерация уровня
         self.levelmap = load_level('level_1.map')
         data_lst = generate_level(self.levelmap)
@@ -1070,7 +1070,7 @@ if __name__ == '__main__':
     except:
         pg.mixer.music.load('data/story.wav')
     pg.mixer.music.set_volume(0.4)
-    pg.mixer.music.play(-1, 0.0, 5000)
+    pg.mixer.music.play(-1, 0.0)
     return_screen('start-screen.png')
 
     # включаем музыку
@@ -1079,7 +1079,7 @@ if __name__ == '__main__':
     except:
         pg.mixer.music.load('data/sea.wav')
     pg.mixer.music.set_volume(0.4)
-    pg.mixer.music.play(-1, 0.0, 5000)
+    pg.mixer.music.play(-1, 0.0)
 
     return_screen('1pic.png')
 
