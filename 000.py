@@ -1,0 +1,458 @@
+import os
+import sys
+import numpy as np
+import pygame as pg
+import random
+from pygame import mixer
+from datetime import datetime
+
+
+# функция для прорисовки текста
+def draw_text(text, x, y):
+    font = pg.font.SysFont('Franklin Gothic Heavy', 35)
+    img = font.render(text, True, (255, 79, 0))
+    screen.blit(img, (x, y))
+
+
+def load_image(name):  # Проверка фото на наличие
+    filename = os.path.join('data', name)
+    try:
+        image = pg.image.load(filename)
+    except pg.error as error:
+        print('Не могу загрузить изображение:', name)
+        raise SystemExit(error)
+    return image
+
+
+x_end, y_end = 0, 0  # Координаты
+
+
+class Player(pg.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(player_group)
+        self.image = player_image
+        self.pos = (pos_x, pos_y)
+        self.rect = self.image.get_rect().move(tile_width * pos_x + 5,
+                                               100 + tile_height * pos_y)
+        self.coins = None
+        self.sum_coins = 0
+        self.enemies = None
+        self.alive = True
+
+    def move(self, x, y):
+        self.pos = (x, y)
+        self.rect = self.image.get_rect().move(tile_width * self.pos[0] + 5,
+                                               100 + tile_height * self.pos[1])
+        global x_end, y_end
+        x_end, y_end = x, y
+
+    def update(self):  # Проверка на столкновение с предметом или врагом
+        coins_hit_list = pg.sprite.spritecollide(self, self.coins, False)
+        for coin in coins_hit_list:
+            self.sum_coins += 1
+            coin.kill()
+
+        if pg.sprite.spritecollideany(self, self.enemies):
+            self.alive = False
+
+
+class Coin(pg.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(coins_group)
+        k = random.choice(used_coins)
+        self.image = load_image(f'coin{k}.png').convert_alpha()
+        del used_coins[used_coins.index(k)]
+        self.rect = self.image.get_rect().move(tile_width * y,
+                                               100 + tile_height * x)
+
+
+class Enemy(pg.sprite.Sprite):
+    def __init__(self, x, y, end_x, end_y):
+        super().__init__()
+        self.image = load_image('enemy.png').convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.x = tile_width * y
+        self.rect.y = 100 + tile_height * x
+        self.start_x = tile_width * y
+        self.start_y = 100 + tile_height * x
+        self.end_x = end_y * tile_width
+        self.end_y = end_x * tile_height + 100
+        self.direction = 1
+
+    def update(self):  # Движение врагов
+        if self.end_y > self.start_y:
+            if self.rect.y >= self.end_y:
+                self.rect.y = self.end_y
+                self.direction = -1
+            if self.rect.y <= self.start_y:
+                self.rect.y = self.start_y
+                self.direction = 1
+            self.rect.y += tile_height * self.direction
+        else:
+            if self.rect.x >= self.end_x:
+                self.rect.x = self.end_x
+                self.direction = -1
+            if self.rect.x <= self.start_x:
+                self.rect.x = self.start_x
+                self.direction = 1
+            self.rect.x += tile_width * self.direction
+
+
+class Tile(pg.sprite.Sprite):
+    def __init__(self, tile_type, pos_x, pos_y):
+        super().__init__(tiles_group)
+        self.image = tile_images[tile_type]
+        self.rect = self.image.get_rect().move(tile_width * pos_x,
+                                               100 + tile_height * pos_y)
+
+
+def load_level(filename):
+    filename = os.path.join('data', filename)
+    with open(filename, 'r') as mapfile:
+        levelmap = np.array([list(i) for i in [line.strip() for line in mapfile]])
+        while len(coins_coord) < 10:
+            k1 = random.randint(0, 24)
+            k2 = random.randint(0, 45)
+            if levelmap[k1, k2] == '.' and [k1, k2] not in coins_coord:
+                coins_coord.append([k1, k2])
+    return levelmap
+
+
+def generate_level(level):
+    player, x, y = None, None, None
+    row, col = level.shape
+    for y in range(row):
+        for x in range(col):
+            if level[y, x] == '#':
+                Tile('wall', x, y)
+            elif level[y, x] == '@':
+                level[y, x] = '.'
+                player = Player(x, y)
+    return player, x, y
+
+
+def move_player(player, movement):  # Движение персонажа
+    x, y = player.pos
+    if movement == 'up':
+        if y > 0 and levelmap[y - 1, x] == '.':
+            player.move(x, y - 1)
+    elif movement == 'down':
+        if y < level_y - 1 and levelmap[y + 1, x] == '.':
+            player.move(x, y + 1)
+    elif movement == 'left':
+        if x > 0 and levelmap[y, x - 1] == '.':
+            player.move(x - 1, y)
+    elif movement == 'right':
+        if x < level_x - 1 and levelmap[y, x + 1] == '.':
+            player.move(x + 1, y)
+
+
+def count_time(time):  # Расчёт того, какой сейчас кубок
+    if time // 60 < 2:
+        pass_surf = load_image('gold.png')
+        pass_rect = pass_surf.get_rect(bottomright=(1190, 90))
+        screen.blit(pass_surf, pass_rect)
+    elif time // 60 < 4:
+        pass_surf = load_image('silver.png')
+        pass_rect = pass_surf.get_rect(bottomright=(1190, 90))
+        screen.blit(pass_surf, pass_rect)
+    else:
+        pass_surf = load_image('bronze.png')
+        pass_rect = pass_surf.get_rect(bottomright=(1190, 90))
+        screen.blit(pass_surf, pass_rect)
+
+
+def terminate():
+    pg.quit()
+    sys.exit()
+
+
+if __name__ == '__main__':
+    pg.init()
+    pg.display.set_caption('Лабиринт')
+    size = width, height = 1200, 800
+    screen = pg.display.set_mode(size)
+
+    # включаем музыку
+    pg.mixer.pre_init(44100, -16, 2, 512)
+    mixer.init()
+    pg.mixer.music.load('data/music1.wav')
+    pg.mixer.music.set_volume(0.4)
+    pg.mixer.music.play(-1, 0.0, 5000)
+
+    # спрайты
+    player_image = load_image('stand.png')
+    tile_images = {
+        'wall': load_image('box1.png')
+    }
+    tile_width = 26
+    tile_height = 28
+    player_group = pg.sprite.Group()
+    tiles_group = pg.sprite.Group()
+
+    # создание карты и предметов на ней
+    used_coins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    coins_coord = []
+    levelmap = load_level('level-01.map')
+    player, level_x, level_y = generate_level(levelmap)
+
+    coins_group = pg.sprite.Group()
+    for coord in coins_coord:
+        coin = Coin(coord[0], coord[1])
+        coins_group.add(coin)
+    player.coins = coins_group
+
+    # создание врагов
+    enemy_group = pg.sprite.Group()
+    player.enemies = enemy_group
+    enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44], [3, 18, 21, 18], [3, 28, 21, 28], [8, 5, 8, 14],
+                     [17, 5, 17, 14], [8, 32, 8, 40], [17, 32, 17, 40]]
+    for coord in enemies_coord:
+        enemy = Enemy(coord[0], coord[1], coord[2], coord[3])
+        enemy_group.add(enemy)
+
+    pg.key.set_repeat(200, 70)
+    fps = 60
+    data_now = datetime.today()
+
+    running = True
+    while running:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                running = False
+            elif event.type == pg.KEYDOWN:
+                if event.key == pg.K_UP:
+                    move_player(player, 'up')
+                elif event.key == pg.K_DOWN:
+                    move_player(player, 'down')
+                elif event.key == pg.K_LEFT:
+                    move_player(player, 'left')
+                elif event.key == pg.K_RIGHT:
+                    move_player(player, 'right')
+        screen.fill(pg.Color('black'))
+        sec = datetime.today() - data_now
+        time = int(str(sec.seconds))
+
+        if not player.alive:
+            pass_surf = load_image('pass.png')
+            pass_rect = pass_surf.get_rect()
+            screen.blit(pass_surf, pass_rect)
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    terminate()
+                elif event.type == pg.KEYDOWN or \
+                        event.type == pg.MOUSEBUTTONDOWN:
+                    player.alive = True
+                    player_group = pg.sprite.Group()
+                    tiles_group = pg.sprite.Group()
+
+                    used_coins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                    coins_coord = []
+                    levelmap = load_level('level-01.map')
+                    player, level_x, level_y = generate_level(levelmap)
+
+                    coins_group = pg.sprite.Group()
+                    for coord in coins_coord:
+                        coin = Coin(coord[0], coord[1])
+                        coins_group.add(coin)
+
+                    player.coins = coins_group
+
+                    enemy_group = pg.sprite.Group()
+                    player.enemies = enemy_group
+                    enemies_coord = [[1, 1, 23, 1], [1, 44, 23, 44], [3, 18, 21, 18], [3, 28, 21, 28], [8, 5, 8, 14],
+                                     [17, 5, 17, 14], [8, 32, 8, 40], [17, 32, 17, 40]]
+                    for coord in enemies_coord:
+                        enemy = Enemy(coord[0], coord[1], coord[2], coord[3])
+                        enemy_group.add(enemy)
+
+                    pg.key.set_repeat(200, 70)
+
+                    fps = 60
+                    data_now = datetime.today()
+        elif x_end == 21 and y_end == 0:
+            if time // 60 < 2:
+                pass_surf = load_image('end1.png')
+                pass_rect = pass_surf.get_rect()
+                screen.blit(pass_surf, pass_rect)
+            elif time // 60 < 4:
+                pass_surf = load_image('end2.png')
+                pass_rect = pass_surf.get_rect()
+                screen.blit(pass_surf, pass_rect)
+            else:
+                pass_surf = load_image('end3.png')
+                pass_rect = pass_surf.get_rect()
+                screen.blit(pass_surf, pass_rect)
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    terminate()
+                elif event.type == pg.KEYDOWN or \
+                        event.type == pg.MOUSEBUTTONDOWN:
+                    terminate()
+        else:
+            fon_surf = load_image('fon.png')
+            fon_rect = fon_surf.get_rect()
+            screen.blit(fon_surf, fon_rect)
+            tiles_group.draw(screen)
+            player_group.draw(screen)
+            coins_group.draw(screen)
+            enemy_group.draw(screen)
+            enemy_group.update()
+            player.update()
+            draw_text(f'Прошло времени  {str(time // 60)} : {str(time % 60)}', 775, 25)
+            draw_text(f'Собрано предметов:  {str(player.sum_coins)} / 10', 12, 25)
+            count_time(time)
+        pg.display.flip()
+        pg.time.Clock().tick(fps)
+    terminate()
+
+
+# функция для прорисовки текста
+def draw_text(text, x, y):
+    font = pg.font.SysFont('Franklin Gothic Heavy', 35)
+    img = font.render(text, True, (255, 79, 0))
+    screen.blit(img, (x, y))
+
+
+def load_image(name):  # Проверка фото на наличие
+    filename = os.path.join('data', name)
+    try:
+        image = pg.image.load(filename)
+    except pg.error as error:
+        print('Не могу загрузить изображение:', name)
+        raise SystemExit(error)
+    return image
+
+
+class Board:
+    def __init__(self, row, col):
+        self.row = row  # кол-во строк
+        self.col = col  # кол-во столбцов
+        self.map = [[random.randint(1, 3) for j in range(5)] for i in range(3)]
+        self.top = 100  # отступ сверху
+        self.left = 100  # отступ слева
+        self.cell_size = 200  # размер ячейки
+        self.map_number = random.randint(1, 3)
+
+    def draw_picture(self):
+        fon_surf1 = load_image(f'map{self.map_number}.png')
+        for i in range(100, 901, 200):
+            for j in range(100, 501, 200):
+                t = fon_surf1.copy()
+                t = t.subsurface((i - 100, j - 100, 200, 200))
+                if self.map[(j - 100) // 200][(i - 100) // 200] == 0:
+                    t = pg.transform.flip(t, False, False)
+                elif self.map[(j - 100) // 200][(i - 100) // 200] == 1:
+                    t = pg.transform.flip(t, True, False)
+                elif self.map[(j - 100) // 200][(i - 100) // 200] == 2:
+                    t = pg.transform.flip(t, True, True)
+                else:
+                    t = pg.transform.flip(t, False, True)
+                screen.blit(t, t.get_rect(topleft=(i, j)))
+
+    def get_click(self, mouse_pos):
+        status = self.get_cell(mouse_pos)
+        if status != 'None':
+            self.map[status[0]][status[1]] = (self.map[status[0]][status[1]] + 1) % 4
+
+    def get_cell(self, mouse_pos):
+        x = mouse_pos[0]
+        y = mouse_pos[1]
+        i = (y - self.top) // self.cell_size
+        j = (x - self.left) // self.cell_size
+        if i < 0 or i >= self.row or j < 0 or j >= self.col:
+            return 'None'
+        else:
+            return i, j
+
+
+def paint_fish():
+    for elem in coords_fish:
+        screen.blit(load_image(f'fish{elem[4]}.png'),
+                    load_image(f'fish{elem[4]}.png').get_rect(bottomright=(elem[0], elem[1])))
+        elem[0] += (v * clock.tick(60) / 1000) * elem[2]
+        elem[1] += (v * clock.tick(60) / 1000) * elem[3]
+
+        if elem[0] <= 10:
+            elem[2] = 1
+        elif elem[0] >= 490:
+            elem[2] = -1
+
+        if elem[1] <= 10:
+            elem[3] = 1
+        elif elem[1] >= 490:
+            elem[3] = -1
+
+
+def terminate():
+    pg.quit()
+    sys.exit()
+
+
+if __name__ == '__main__':
+    pg.init()
+    pg.display.set_caption('Пазл')
+    size = width, height = 1200, 800
+    screen = pg.display.set_mode(size)
+    board = Board(3, 5)
+
+    # включаем музыку
+    pg.mixer.pre_init(44100, -16, 2, 512)
+    mixer.init()
+    pg.mixer.music.load('data/sea.wav')
+    pg.mixer.music.set_volume(0.4)
+    pg.mixer.music.play(-1, 0.0, 5000)
+
+    coords_fish = []
+    for _ in range(10):
+        coords_fish.append([random.randint(100, 1150), random.randint(100, 750), -1, -1, random.randint(1, 6)])
+    v = 200
+    clock = pg.time.Clock()
+
+    pg.key.set_repeat(200, 70)
+    fps = 60
+    data_now = datetime.today()
+
+    running = True
+    while running:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                running = False
+            if event.type == pg.MOUSEBUTTONDOWN:
+                board.get_click(event.pos)
+        sec = datetime.today() - data_now
+        time = int(str(sec.seconds))
+        win = True
+        for i in range(3):
+            for j in range(5):
+                if board.map[i][j] != 0:
+                    win = False
+        if win:
+            pass_surf = load_image('end_puzzle.png')
+            pass_rect = pass_surf.get_rect()
+            screen.blit(pass_surf, pass_rect)
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    terminate()
+                elif event.type == pg.KEYDOWN or \
+                        event.type == pg.MOUSEBUTTONDOWN:
+                    terminate()
+        elif time >= 90:
+            pass_surf = load_image('pass_puzzle.png')
+            pass_rect = pass_surf.get_rect()
+            screen.blit(pass_surf, pass_rect)
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    terminate()
+                elif event.type == pg.KEYDOWN or \
+                        event.type == pg.MOUSEBUTTONDOWN:
+                    board = Board(3, 5)
+                    data_now = datetime.today()
+        else:
+            screen.fill(pg.Color('black'))
+            fon_surf = load_image('main.png')
+            fon_rect = fon_surf.get_rect()
+            screen.blit(fon_surf, fon_rect)
+            paint_fish()
+            board.draw_picture()
+            draw_text(f'Прошло времени  {str(time // 60)} : {str(time % 60)} из 1 : 30', 750, 40)
